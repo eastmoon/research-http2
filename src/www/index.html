@@ -7,6 +7,20 @@ html { color-scheme: light dark; }
 body { width: 35em; margin: 0 auto;
 font-family: Tahoma, Verdana, Arial, sans-serif; }
 </style>
+<script>
+    function loadJSON(filename, callback) {
+        var xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', filename, true);
+        xobj.onreadystatechange = function () {
+              if (xobj.readyState == 4 && xobj.status == "200") {
+                // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+                callback(xobj.responseText);
+              }
+        };
+        xobj.send(null);
+    }
+</script>
 </head>
 <body>
 <h1>Welcome to nginx!</h1>
@@ -22,10 +36,17 @@ Commercial support is available at
 <img src="nginx.png?3211" />
 <img src="nginx.png?1235" />
 <img src="nginx.png?1251" />
-<img src="nginx.png?2313" />
-<img src="nginx.png?5152" />
-<img src="nginx.png?9623" />
 
 <p><em>Thank you for using nginx.</em></p>
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        for (let i = 0; i < 10; i++) {
+            loadJSON(`asset-manifest.json?${Math.random() * 100000}`, ( restext ) => {
+                var res = JSON.parse(restext)
+                console.log(res);
+            })
+        }
+    });
+</script>
 </html>

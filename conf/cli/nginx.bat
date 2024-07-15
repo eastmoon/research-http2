@@ -44,12 +44,12 @@ goto end
     goto end
 
 :short
-    echo Startup multi frontend framework demo server
+    echo Startup multi nginx demo server
     goto end
 
 :help
     echo This is a Command Line Interface with project %PROJECT_NAME%
-    echo Startup multi frontend framework demo server
+    echo Startup multi nginx demo server
     echo.
     echo Options:
     echo      --help, -h        Show more information with command.
