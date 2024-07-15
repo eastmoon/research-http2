@@ -1,10 +1,10 @@
 # HTTP2 技術研究
 
-本研究針對 HTTP2 功能與不同伺服器的啟動方式進行研究。
+本研究針對 HTTP2 功能於 Cleartext TCP 執行條件下，在不同伺服器的啟動方式進行研究。
 
 ## 簡介
 
-HTTP 協定自 1997 年 HTTP 1.1 後，於 2015 年才迎來一個主要更新 HTTP 2.0，簡稱為h2 ( 基於TLS/1.2或以上版本的加密連接 ) 或 h2c ( 非加密連接 )。
+HTTP 協定自 1997 年 HTTP 1.1 後，於 2015 年才迎來一個主要更新 HTTP 2.0，簡稱為h2 ( 基於TLS/1.2或以上版本的加密連接 ) 或 h2c ( 基於 Cleartext TCP 的非加密連接的  )。
 
 相對於 HTTP 1.1，其協定增加以下優點：
 
@@ -63,10 +63,18 @@ curl --http2-prior-knowledge -sI http://nginx-1.25 -SI
 | Nginx | --http2 | --http2-prior-knowledge | browser |
 | :--: | :--: | :--: | :--: |
 | 1.24 non HTTP2 | 正常回應 | 說明不支援 2.0 | 可開啟網頁 |
-| 1.24 with HTTP2 | HTTP 0.9 協定不允許 | 正常回應 | 無法開啟網頁 |
+| 1.24 with HTTP2 | HTTP 0.9 協定不允許，80 Port 僅能通訊 2.0 協定 | 正常回應 | 無法開啟網頁 |
 | 1.25 with HTTP2 | 正常回應 | 正常回應 | 無法開啟網頁 |
 
 參考相關文獻對於 1.24 設定 HTTP2 的討論，多數提到即使設定 h2c 也會因為瀏覽器支援度導致降到 HTTP 1.1 的 Pipelining 而異常，對此建議若不使用 1.25 版本還請勿開啟 HTTP 2.0。
+
+此外，即使使用 1.25，由於主流瀏覽器對於 HTTP 規範使用 HTTP 1.1、HTTPS 規範使用 HTTP 2.0；因此，僅有非經過瀏覽器的通訊協定服務才可以設定執行 HTTP 2.0 over HTTP ( aka h2c )；因此，在本範例中，共有兩種驗證方式。
+
+| Type | Protocal | 補充 |
+| :--: | :--: | :---- |
+| [網際網路頁面](./src/www) | HTTP 1.1 | Nginx 啟動後皆有對外連結埠，其中 [nginx-1.25](http://localhost:8083) 的頁面可以看到即使設定 HTTP 2.0 開啟仍然使用 HTTP 1.1 執行 |
+| [應用程式 HTTP 請求](./src/pytest) | HTTP 1.1 / HTTP 2.0 | Python 測試框架使用 HTTPX 函式庫進行 HTTP 請求，倘若未強制指定皆會使用 HTTP 1.1 執行，但若強制 HTTP 2.0 並關閉 HTTP 1.1 協定，則會正常運行在 HTTP 2.0 協定 |
+
 
 ## 文獻
 
@@ -76,12 +84,21 @@ curl --http2-prior-knowledge -sI http://nginx-1.25 -SI
     - [HTTP/1、HTTP/1.1 和 HTTP/2 的區別](https://www.explainthis.io/zh-hant/swe/http1.0-http1.1-http2.0-difference)
     - [HTTP2 Multiplexing: The devil is in the details](https://blog.codavel.com/http2-multiplexing)
     - [HTTP/2 Test](https://tools.keycdn.com/http2-test)
-+ Nginx
-    - [Module ngx_http_v2_module](https://nginx.org/en/docs/http/ngx_http_v2_module.html)
-    - [Allow h2c and HTTP/1.1 support on the same listening socket](https://trac.nginx.org/nginx/ticket/816)
-+ .NET
-    - [How to use HTTP/2 with HttpClient in .NET 6.0](https://www.siakabaro.com/use-http-2-with-httpclient-in-net-6-0/)
-+ Node
-    - [How to use HTTP2 with Express.js and test it locally](https://typeofnan.dev/how-to-use-http2-with-express/)
-+ curl
-    - [HTTP/2 with curl](https://curl.se/docs/http2.html)
++ 伺服器
+    - Nginx
+        + [Module ngx_http_v2_module](https://nginx.org/en/docs/http/ngx_http_v2_module.html)
+        + [Allow h2c and HTTP/1.1 support on the same listening socket](https://trac.nginx.org/nginx/ticket/816)
+    - .NET
+        + [How to use HTTP/2 with HttpClient in .NET 6.0](https://www.siakabaro.com/use-http-2-with-httpclient-in-net-6-0/)
+    - Node
+        + [How to use HTTP2 with Express.js and test it locally](https://typeofnan.dev/how-to-use-http2-with-express/)
++ 測試
+    - curl
+        + [HTTP/2 with curl](https://curl.se/docs/http2.html)
+    - pytest
+        + [httpx - HTTP/2](https://www.python-httpx.org/http2/)
+        + [httpcore - HTTP/2](https://www.encode.io/httpcore/http2/)
++ 議題
+    - [Why does the HTTP Upgrade: header contain both h2 and h2c in Apache?](https://stackoverflow.com/questions/67583138)
+    - [Why do web browsers not support h2c (HTTP/2 without TLS)?](https://stackoverflow.com/questions/46788904)
+    - [Start HTTP/2 running over cleartext TCP](https://yushuanhsieh.github.io/post/2019-08-27-http2-h2c/)
